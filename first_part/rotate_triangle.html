@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script id="vertex-shader" type="x-shader/x-vertex">
+    //note: DTn means different things in relation to previous code practices. n = first, second...
+    attribute vec4 vPosition;
+    attribute vec4 vColor;
+    varying vec4 fColor;
+    uniform float theta; //DTfirst
+    //compute the sines and cosines of theta for the three axes
+    void main(){ //DTsecond
+        float angles = radians(theta);
+        float c = cos(angles);
+        float s = sin(angles);
+        //such matrices are colum-major order
+        mat4 rz = mat4(  c, -s, 0.0, 0.0,
+                        s, c, 0.0, 0.0,
+                        0.0, 0.0, 1.0, 0.0,
+                        0.0, 0.0, 0.0, 1.0 );
+        
+        mat4 e = mat4(  0.3, 0.0, 0.0, 0.0,
+                        0.0, 0.3, 0.0, 0.0,
+                        0.0, 0.0, 0.0, 0.0,
+                        0.0, 0.0, 0.0, 1.0);
+        
+        fColor = vColor;
+        gl_Position = vPosition * rz * e;
+    }
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec4 fColor;
+    void main(){
+        gl_FragColor = fColor;
+    }
+</script>
+<script type="text/javascript" src="./Common/webgl-utils.js"> </script>
+<script type="text/javascript" src="./Common/initShaders.js"> </script>
+<script type="text/javascript" src="./Common/MV.js"> </script>
+<script type="text/javascript" src="rotate_triangle.js"></script>
+</head>
+
+<body>
+    <canvas id="gl-canvas" width="512" height="512"></canvas>
+    <button id= "zButton">Rotate Z</button>
+</body>
+</html>
