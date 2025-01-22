@@ -14,7 +14,18 @@ window.onload = function init(){
         vec3(1, -1, 0)
     ];   
     
-    document.getElementById("zButton").onclick = rotateZ;
+    document.getElementById("tButton").onclick = function () {
+        var xTranslate = document.getElementById("xTranslate");
+        var yTranslate = document.getElementById("yTranslate");
+        if (xTranslate.style.display == "none" || yTranslate.style.display == "none") {
+            xTranslate.style.display = "block";
+            yTranslate.style.display = "block";
+        } else {
+            xTranslate.style.display = "none";
+            yTranslate.style.display = "none";
+        }
+    };
+    
     //  Configure WebGL   
     gl.viewport( 0, 0, canvas.width, canvas.height );
     gl.clearColor( 1.0, 1.0, 1.0, 1.0 );  

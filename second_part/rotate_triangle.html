@@ -13,7 +13,7 @@
         float c = cos(angles);
         float s = sin(angles);
         //such matrices are colum-major order
-        mat4 rz = mat4(  c, -s, 0.0, 0.0,
+        mat4 rz = mat4( c, -s, 0.0, 0.0,
                         s, c, 0.0, 0.0,
                         0.0, 0.0, 1.0, 0.0,
                         0.0, 0.0, 0.0, 1.0 );
@@ -23,8 +23,13 @@
                         0.0, 0.0, 0.0, 0.0,
                         0.0, 0.0, 0.0, 1.0);
         
+        mat4 t = mat4(1.0, 0.0, 0.0, -0.4, 
+                      0.0, 1.0, 0.0, 0.0,
+                      0.0, 0.0, 1.0, 0.0,
+                      0.0, 0.0, 0.0, 1.0);
+        
         fColor = vColor;
-        gl_Position = vPosition * rz * e;
+        gl_Position = vPosition * rz * e * t;
     }
 </script>
 
@@ -43,7 +48,9 @@
 
 <body>
     <canvas id="gl-canvas" width="512" height="512"></canvas>
-    <button id= "zButton">Rotate Z</button>
-
+    <button id= "zButton">Z-Rotation</button>
+    <button id= "tButton">Tranlation</button>   
+    <button id= "xTranslate" style="display: none;">X-Tranlation</button>   
+    <button id= "yTranslate" style="display: none;">Y-Tranlation</button>   
 </body>
 </html>
