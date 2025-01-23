@@ -5,8 +5,8 @@ var fcolor;
 var thetaLoc;
 window.onload = function init(){
     var canvas = document.getElementById("gl-canvas");
-     gl = WebGLUtils.setupWebGL( canvas );    
-     if ( !gl ) { alert( "WebGL isn't available"); }       
+    gl = WebGLUtils.setupWebGL( canvas );    
+    if ( !gl ) { alert( "WebGL isn't available"); }       
     // Three Vertices
     var vertices = [
         vec3(-1, -1, 0),
@@ -14,17 +14,22 @@ window.onload = function init(){
         vec3(1, -1, 0)
     ];   
     
-    document.getElementById("tButton").onclick = function () {
-        var xTranslate = document.getElementById("xTranslate");
-        var yTranslate = document.getElementById("yTranslate");
-        if (xTranslate.style.display == "none" || yTranslate.style.display == "none") {
-            xTranslate.style.display = "block";
-            yTranslate.style.display = "block";
-        } else {
-            xTranslate.style.display = "none";
-            yTranslate.style.display = "none";
+    document.getElementById("container").addEventListener("click", 
+        function(event){
+            var translate_data = document.getElementById("txy-section");
+            if(event.target && event.target.id === "rButton"){
+                rotateZ();
+            }else if(event.target && event.target.id === "tButton"){
+                if(translate_data.style.display === "none"){
+                    translate_data.style.display = "block";
+                }else{
+                    translate_data.style.display = "none";
+                }
+            }else if(event.target && event.target.id === "eButton"){
+                
+            }
         }
-    };
+    );
     
     //  Configure WebGL   
     gl.viewport( 0, 0, canvas.width, canvas.height );
