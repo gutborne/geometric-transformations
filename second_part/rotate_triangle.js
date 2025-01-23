@@ -3,6 +3,10 @@ var points;
 var theta = 0;
 var fcolor;
 var thetaLoc;
+var xTranslateLoc;
+var yTranslateLoc;
+var xtranslation = 0;
+var ytranslation = 0;
 window.onload = function init(){
     var canvas = document.getElementById("gl-canvas");
     gl = WebGLUtils.setupWebGL( canvas );    
@@ -22,7 +26,9 @@ window.onload = function init(){
             }else if(event.target && event.target.id === "tButton"){
                 if(translate_data.style.display === "none"){
                     translate_data.style.display = "block";
+                    getValuesTranslation();
                 }else{
+                    getValuesTranslation();
                     translate_data.style.display = "none";
                 }
             }else if(event.target && event.target.id === "eButton"){
@@ -34,7 +40,7 @@ window.onload = function init(){
     //  Configure WebGL   
     gl.viewport( 0, 0, canvas.width, canvas.height );
     gl.clearColor( 1.0, 1.0, 1.0, 1.0 );  
-
+    
     //  Load shaders and initialize attribute buffers
     var program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );        
@@ -48,6 +54,8 @@ window.onload = function init(){
     gl.enableVertexAttribArray( vPosition );
     fcolor = gl.getUniformLocation(program, "fcolor");
     thetaLoc = gl.getUniformLocation(program, "theta");
+    xTranslateLoc = gl.getUniformLocation(program, "xTranslate");
+    yTranslateLoc = gl.getUniformLocation(program, "yTranslate");
     render();
 
 };
@@ -56,6 +64,8 @@ function render() {
    gl.clear( gl.COLOR_BUFFER_BIT );
    gl.uniform4f(fcolor, 0.0, 1.0, 0.0, 1.0); 
    gl.uniform1f(thetaLoc, theta); 
+   gl.uniform1f(xTranslateLoc, xtranslation); 
+   gl.uniform1f(yTranslateLoc, ytranslation); 
    gl.drawArrays( gl.TRIANGLES, 0, 3);
    requestAnimFrame(render);
 }
@@ -63,3 +73,16 @@ function render() {
 function rotateZ() {
     theta += 3;
 };
+
+function getValuesTranslation(){
+    var tForm = document.getElementById("tForm");
+    tForm.addEventListener("submit", function(event) {
+        var userImputX = document.getElementById("xTranslate").value; 
+        xtranslation = parseFloat(userImputX) || 0;
+        var userImputY = document.getElementById("yTranslate").value; 
+        ytranslation = parseFloat(userImputY) || 0;
+        event.preventDefault();
+    }
+)};
+
+

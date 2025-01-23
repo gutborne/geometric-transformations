@@ -7,11 +7,15 @@
     attribute vec4 vColor;
     varying vec4 fColor;
     uniform float theta; //DTfirst
+    uniform float xTranslate;
+    uniform float yTranslate;
     //compute the sines and cosines of theta for the three axes
     void main(){ //DTsecond
         float angles = radians(theta);
         float c = cos(angles);
         float s = sin(angles);
+        float x = xTranslate;
+        float y = yTranslate;
         //such matrices are colum-major order
         mat4 rz = mat4( c, -s, 0.0, 0.0,
                         s, c, 0.0, 0.0,
@@ -23,8 +27,8 @@
                         0.0, 0.0, 0.0, 0.0,
                         0.0, 0.0, 0.0, 1.0);
         
-        mat4 t = mat4(1.0, 0.0, 0.0, -0.6, 
-                      0.0, 1.0, 0.0, -0.5,
+        mat4 t = mat4(1.0, 0.0, 0.0, x, 
+                      0.0, 1.0, 0.0, y,
                       0.0, 0.0, 1.0, 0.0,
                       0.0, 0.0, 0.0, 1.0);
         
@@ -54,14 +58,14 @@
     <section id="container"> 
         <canvas id="gl-canvas" width="512" height="512"></canvas>
         <button id= "rButton">Z-Rotation</button>
-        <button id= "tButton">Tranlation</button>
+        <button id= "tButton">Translation</button>
         <section id="txy-section">
-            <form action="">
+            <form action="" id="tForm">
                 <label for="xTranslate"> x-translation: </label>
                 <input type="text" name="xTranslate" id="xTranslate">
                 <label for="yTranslate">y-translate: </label>
-                <input typ="text" id="yTranslate" name="yTranslate">
-                <input type="submit" value="submit">
+                <input type="text" id="yTranslate" name="yTranslate">
+                <input type="submit" value="submit" id="submit">
             </form>
         </section>  
         <button id="eButton">Scale</button>
