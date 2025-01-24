@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script id="vertex-shader" type="x-shader/x-vertex">
+    //note: DTn means different things in relation to previous code practices. n = first, second...
+    attribute vec4 vPosition;
+    attribute vec4 vColor;
+    varying vec4 fColor;
+    uniform float theta; //DTfirst
+    uniform float xTranslate;
+    uniform float yTranslate;
+    uniform float xScale;
+    uniform float yScale;
+    //compute the sines and cosines of theta for the three axes
+    void main(){ //DTsecond
+        float angles = radians(theta);
+        float c = cos(angles);
+        float s = sin(angles);
+        float x_translate = xTranslate;
+        float y_Translate = yTranslate;
+        float x_scale = xScale;
+        float y_scale = yScale;
+        
+        //such matrices are colum-major order
+        mat4 rz = mat4( c, -s, 0.0, 0.0,
+                        s, c, 0.0, 0.0,
+                        0.0, 0.0, 1.0, 0.0,
+                        0.0, 0.0, 0.0, 1.0 );
+        
+        mat4 e = mat4(  x_scale, 0.0, 0.0, 0.0,
+                        0.0, y_scale, 0.0, 0.0,
+                        0.0, 0.0, 0.0, 0.0,
+                        0.0, 0.0, 0.0, 1.0);
+        
+        mat4 t = mat4(1.0, 0.0, 0.0, x_translate, 
+                      0.0, 1.0, 0.0, y_Translate,
+                      0.0, 0.0, 1.0, 0.0,
+                      0.0, 0.0, 0.0, 1.0);
+        
+        fColor = vColor;
+        gl_Position = vPosition * rz * e * t;
+    }
+</script>
+<style>
+    #txy-section{
+        display: none;
+    }
+    #exy-section{
+        display: none;
+    }
+</style>
+<script id="fragment-shader" type="x-shader/x-fragment">
+    precision mediump float;
+    uniform vec4 fcolor;
+    void main(){
+        gl_FragColor = fcolor;
+    }
+</script>
+<script type="text/javascript" src="./Common/webgl-utils.js"> </script>
+<script type="text/javascript" src="./Common/initShaders.js"> </script>
+<script type="text/javascript" src="./Common/MV.js"> </script>
+<script type="text/javascript" src="rotate_triangle.js"></script>
+</head>
+
+<body>
+    <section id="container"> 
+        <canvas id="gl-canvas" width="512" height="512"></canvas>
+        <button id= "rButton">Z-Rotation</button>
+        <button id= "tButton">Translation</button>
+        <section id="txy-section">
+            <form action="" id="tForm">
+                <label for="xTranslate"> x-translation: </label>
+                <input type="text" name="xTranslate" id="xTranslate">
+                <label for="yTranslate">y-translate: </label>
+                <input type="text" id="yTranslate" name="yTranslate">
+                <input type="submit" value="submit" id="submit">
+            </form>
+        </section>  
+        <button id="eButton">Scale</button>
+        <section id="exy-section">
+            <form action="" id="eForm">
+                <label for="xScale">x-scale: </label>
+                <input type="text" name="xScale" id="xScale">
+                <label for="yScale">y-scale: </label>
+                <input type="text" id="yScale" name="yScale">
+                <input type="submit" value="submit" id="submit">
+            </form>
+        </section>  
+    </section>
+</body>
+</html>
