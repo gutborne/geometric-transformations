@@ -11,6 +11,7 @@
     uniform float yTranslate;
     uniform float xScale;
     uniform float yScale;
+    uniform int i;
     //compute the sines and cosines of theta for the three axes
     void main(){ //DTsecond
         float angles = radians(theta);
@@ -27,18 +28,18 @@
                         0.0, 0.0, 1.0, 0.0,
                         0.0, 0.0, 0.0, 1.0 );
         
-        mat4 e = mat4(  x_scale, 0.0, 0.0, 0.0,
-                        0.0, y_scale, 0.0, 0.0,
-                        0.0, 0.0, 0.0, 0.0,
-                        0.0, 0.0, 0.0, 1.0);
+                        mat4 e = mat4(  x_scale, 0.0, 0.0, 0.0,
+                                        0.0, y_scale, 0.0, 0.0,
+                                        0.0, 0.0, 0.0, 0.0,
+                                        0.0, 0.0, 0.0, 1.0);
         
-        mat4 t = mat4(1.0, 0.0, 0.0, x_translate, 
-                      0.0, 1.0, 0.0, y_Translate,
-                      0.0, 0.0, 1.0, 0.0,
-                      0.0, 0.0, 0.0, 1.0);
-        
-        fColor = vColor;
-        gl_Position = vPosition * rz * e * t;
+                        mat4 t = mat4(1.0, 0.0, 0.0, x_translate, 
+                                    0.0, 1.0, 0.0, y_Translate,
+                                    0.0, 0.0, 1.0, 0.0,
+                                    0.0, 0.0, 0.0, 1.0);
+        fColor = vec4(1.0, 1.0, 1.0, 1.0);  // Pass a default white color
+        vec4 translatedPosition = vec4(vPosition.x + x_translate, vPosition.y + y_Translate, vPosition.z, 1.0) * t * rz * e;
+        gl_Position = translatedPosition;
     }
 </script>
 <style>
@@ -51,9 +52,20 @@
 </style>
 <script id="fragment-shader" type="x-shader/x-fragment">
     precision mediump float;
-    uniform vec4 fcolor;
+    uniform vec4 fColor;
+    uniform int i;
+    
     void main(){
-        gl_FragColor = fcolor;
+        vec4 c[7];
+        c[0] = fColor;  // Default color (passed from vertex shader)
+        c[1] = vec4(1.0, 0.0, 0.0, 1.0);  // Red
+        c[2] = vec4(0.0, 1.0, 0.0, 1.0);  // Green
+        c[3] = vec4(0.0, 0.0, 1.0, 1.0);  // Blue
+        c[4] = vec4(1.0, 1.0, 0.0, 1.0);  // Yellow
+        c[5] = vec4(0.0, 1.0, 1.0, 1.0);  // Cyan
+        c[6] = vec4(1.0, 0.0, 1.0, 1.0);  // Magenta
+        // Assign the color based on the uniform `i`
+        gl_FragColor = c[2];
     }
 </script>
 <script type="text/javascript" src="./Common/webgl-utils.js"> </script>
@@ -67,15 +79,7 @@
         <canvas id="gl-canvas" width="512" height="512"></canvas>
         <button id= "rButton">Z-Rotation</button>
         <button id= "tButton">Translation</button>
-        <section id="txy-section">
-            <form action="" id="tForm">
-                <label for="xTranslate"> x-translation: </label>
-                <input type="text" name="xTranslate" id="xTranslate">
-                <label for="yTranslate">y-translate: </label>
-                <input type="text" id="yTranslate" name="yTranslate">
-                <input type="submit" value="submit" id="submit">
-            </form>
-        </section>  
+        
         <button id="eButton">Scale</button>
         <section id="exy-section">
             <form action="" id="eForm">
