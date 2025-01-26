@@ -9,8 +9,8 @@ var xtranslation = 0;
 var ytranslation = 0;
 var xScaleLoc;
 var yScaleLoc;
-var xScale = 0.5;
-var yScale = 0.5;
+var xScale = 0.3;
+var yScale = 0.3;
 let isScalePressed = false;
 let isRotationPressed = false;
 let isTranslationPressed = false;
@@ -40,13 +40,7 @@ window.onload = function init(){
             rotateZ();
         } else if (event.target.id === "tButton") {
             isTranslationPressed = true;
-            translate_data = document.getElementById("txy-section");
-            if (translate_data.style.display === "none") {
-                translate_data.style.display = "block";
-                getValuesTranslation();
-            } else {
-                translate_data.style.display = "none";
-            }
+            getValuesTranslation();
         } else if (event.target.id === "eButton") {
             isScalePressed = true;
             getValuesScale();
@@ -135,16 +129,32 @@ function handleScaling(event) {
     }
     console.log(`xScale: ${xScale}, yScale: ${yScale}`);
 }
-function getValuesTranslation(){
-    var tForm = document.getElementById("tForm");
-    tForm.addEventListener("submit", function(event) {
-        var userImputX = document.getElementById("xTranslate").value; 
-        xtranslation = parseFloat(userImputX) || 0;
-        var userImputY = document.getElementById("yTranslate").value; 
-        ytranslation = parseFloat(userImputY) || 0;
-        event.preventDefault();
-    }
-)};
+function getValuesTranslation() {
+    const canvas = document.getElementById("gl-canvas");
+
+    // Add event listener for mouse clicks
+    canvas.addEventListener("mousedown", function (event) {
+        // Get mouse position relative to the canvas
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left; // Mouse X within canvas
+        const mouseY = event.clientY - rect.top;  // Mouse Y within canvas
+
+        // Convert mouse position to normalized device coordinates (NDC)
+        const ndcX = (2 * mouseX) / canvas.width - 1; // Normalize to [-1, 1]
+        const ndcY = 1 - (2 * mouseY) / canvas.height; // Normalize to [-1, 1]
+
+        // Update translation values
+        xtranslation = ndcX;
+        ytranslation = ndcY;
+
+        // Pass updated translation to shaders
+        gl.uniform1f(xTranslateLoc, xtranslation);
+        gl.uniform1f(yTranslateLoc, ytranslation);
+
+        // Render the scene with the new translation
+        render();
+    });
+}
 
 
 
