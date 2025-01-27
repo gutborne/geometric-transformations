@@ -41,14 +41,7 @@
         gl_Position = vPosition * rz * e * t;
     }
 </script>
-<style>
-    #txy-section{
-        display: none;
-    }
-    #exy-section{
-        display: none;
-    }
-</style>
+
 <script id="fragment-shader" type="x-shader/x-fragment">
     precision mediump float;
     uniform vec4 fcolor;
@@ -67,25 +60,7 @@
         <canvas id="gl-canvas" width="512" height="512"></canvas>
         <button id= "rButton">Z-Rotation</button>
         <button id= "tButton">Translation</button>
-        <section id="txy-section">
-            <form action="" id="tForm">
-                <label for="xTranslate"> x-translation: </label>
-                <input type="text" name="xTranslate" id="xTranslate">
-                <label for="yTranslate">y-translate: </label>
-                <input type="text" id="yTranslate" name="yTranslate">
-                <input type="submit" value="submit" id="submit">
-            </form>
-        </section>  
         <button id="eButton">Scale</button>
-        <section id="exy-section">
-            <form action="" id="eForm">
-                <label for="xScale">x-scale: </label>
-                <input type="text" name="xScale" id="xScale">
-                <label for="yScale">y-scale: </label>
-                <input type="text" id="yScale" name="yScale">
-                <input type="submit" value="submit" id="submit">
-            </form>
-        </section>  
     </section>
 </body>
 </html>

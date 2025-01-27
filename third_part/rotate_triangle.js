@@ -60,7 +60,6 @@ window.onload = function init() {
     
     document.getElementById("container").addEventListener("click", function(event) {
         let translate_data;
-    
         // Reset all flags when clicking a button
         isRotationPressed = false;
         isTranslationPressed = false;
@@ -84,9 +83,8 @@ window.onload = function init() {
 
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT);
-
-    // Set color for the triangle
-    const triangleColor = selectedTriangle ? [1.0, 0.0, 0.0] : [0.0, 1.0, 0.0]; // Red if selected
+    // Set color for the triangle that will be Red if selected, green if not
+    const triangleColor = selectedTriangle ? [1.0, 0.0, 0.0] : [0.0, 1.0, 0.0]; 
     gl.uniform4f(fcolor, ...triangleColor, 1.0); 
 
     // Set transformation uniforms
