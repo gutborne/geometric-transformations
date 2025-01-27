@@ -11,22 +11,53 @@ var xScaleLoc;
 var yScaleLoc;
 var xScale = 0.3;
 var yScale = 0.3;
+
 let isScalePressed = false;
 let isRotationPressed = false;
 let isTranslationPressed = false;
-window.onload = function init(){
+
+let selectedTriangle = false; // Flag to check if triangle is selected
+let lastMouseX, lastMouseY; // Store last mouse position
+
+window.onload = function init() {
     var canvas = document.getElementById("gl-canvas");
     gl = WebGLUtils.setupWebGL(canvas);    
-    if ( !gl ) { alert( "WebGL isn't available"); }       
+    if (!gl) { alert("WebGL isn't available"); }       
+
     // Three Vertices
     var vertices = [
         vec3(-1, -1, 0),
         vec3(0, 1, 0),
         vec3(1, -1, 0)
     ];   
-    console.log("rotation before the click: ", isRotationPressed);
-    console.log("scale before the click: ", isScalePressed);
-    console.log("translation before the click: ", isTranslationPressed);
+
+    // Configure WebGL   
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);  
+    
+    // Load shaders and initialize attribute buffers
+    var program = initShaders(gl, "vertex-shader", "fragment-shader");
+    gl.useProgram(program);        
+
+    // Load the data into the GPU        
+    var bufferId = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW); 
+
+    // Associate shader variables with our data buffer
+    var vPosition = gl.getAttribLocation(program, "vPosition");
+    gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+
+    fcolor = gl.getUniformLocation(program, "fcolor");
+    thetaLoc = gl.getUniformLocation(program, "theta");
+    xTranslateLoc = gl.getUniformLocation(program, "xTranslate");
+    yTranslateLoc = gl.getUniformLocation(program, "yTranslate");
+    xScaleLoc = gl.getUniformLocation(program, "xScale");
+    yScaleLoc = gl.getUniformLocation(program, "yScale");
+
+    // Add event listeners for mouse interactions
+    
     document.getElementById("container").addEventListener("click", function(event) {
         let translate_data;
     
@@ -40,53 +71,111 @@ window.onload = function init(){
             rotateZ();
         } else if (event.target.id === "tButton") {
             isTranslationPressed = true;
-            getValuesTranslation();
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
         } else if (event.target.id === "eButton") {
             isScalePressed = true;
             getValuesScale();
         }
-    
-        console.log("scale after the click: ", isScalePressed);
-        console.log("translation after the click: ", isTranslationPressed);
-        console.log("rotation after the click: ", isRotationPressed);
     });
-    
-    //  Configure WebGL   
-    gl.viewport( 0, 0, canvas.width, canvas.height );
-    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );  
-    
-    //  Load shaders and initialize attribute buffers
-    var program = initShaders( gl, "vertex-shader", "fragment-shader" );
-    gl.useProgram( program );        
-    // Load the data into the GPU        
-    var bufferId = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, bufferId );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW); 
-    // Associate out shader variables with our data buffer
-    var vPosition = gl.getAttribLocation( program, "vPosition" );
-    gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vPosition );
-    fcolor = gl.getUniformLocation(program, "fcolor");
-    thetaLoc = gl.getUniformLocation(program, "theta");
-    xTranslateLoc = gl.getUniformLocation(program, "xTranslate");
-    yTranslateLoc = gl.getUniformLocation(program, "yTranslate");
-    xScaleLoc = gl.getUniformLocation(program, "xScale");
-    yScaleLoc = gl.getUniformLocation(program, "yScale");
+        
     render();
-    
 };
 
 function render() {
-    gl.clear( gl.COLOR_BUFFER_BIT );
-    gl.uniform4f(fcolor, 0.0, 1.0, 0.0, 1.0); 
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Set color for the triangle
+    const triangleColor = selectedTriangle ? [1.0, 0.0, 0.0] : [0.0, 1.0, 0.0]; // Red if selected
+    gl.uniform4f(fcolor, ...triangleColor, 1.0); 
+
+    // Set transformation uniforms
     gl.uniform1f(thetaLoc, theta); 
     gl.uniform1f(xTranslateLoc, xtranslation); 
     gl.uniform1f(yTranslateLoc, ytranslation); 
     gl.uniform1f(xScaleLoc, xScale); 
     gl.uniform1f(yScaleLoc, yScale); 
-    gl.drawArrays( gl.TRIANGLES, 0, 3);
+
+    // Draw the triangle
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    
     requestAnimFrame(render);
 }
+
+function handleMouseDown(event) {
+    const canvas = document.getElementById("gl-canvas");
+    
+    // Get mouse coordinates relative to canvas
+    const rect = canvas.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / canvas.width) * 2 - 1; // Convert to NDC
+    const y = -((event.clientY - rect.top) / canvas.height) * 2 + 1; // Convert to NDC
+
+    // Check if click is within triangle bounds using color picking technique
+    if (isPointInTriangle(x, y)) {
+        selectedTriangle = !selectedTriangle; // Toggle selection state
+        console.log("Triangle selected:", selectedTriangle);
+        
+        // Store last mouse position for translation
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
+        
+        if (selectedTriangle) {
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+        
+        return; // Exit if clicked inside triangle
+    }
+}
+
+function handleMouseMove(event) {
+   if (!selectedTriangle) return; // Only move if the triangle is selected
+   
+   const canvas = document.getElementById("gl-canvas");
+   const rect = canvas.getBoundingClientRect();
+
+   // Calculate translation based on mouse movement
+   const deltaX = ((event.clientX - rect.left) / canvas.width) * 2 - 1 - ((lastMouseX - rect.left) / canvas.width) * 2 + 1; 
+   const deltaY = -((event.clientY - rect.top) / canvas.height) * 2 + 1 - (-((lastMouseY - rect.top) / canvas.height) * 2 + 1); 
+
+   xtranslation += deltaX; 
+   ytranslation += deltaY;
+
+   // Update last mouse position
+   lastMouseX = event.clientX;
+   lastMouseY = event.clientY;
+}
+
+function handleMouseUp(event) {
+   selectedTriangle = false; // Deselect when mouse is released
+   document.removeEventListener('mouseup', handleMouseUp);
+}
+
+function isPointInTriangle(x, y) {
+   const verticesNDC = [
+       vec3(-1,-1), 
+       vec3(0,1), 
+       vec3(1,-1)
+   ];
+
+   let areaOrig = Math.abs((verticesNDC[0][0] * (verticesNDC[1][1] - verticesNDC[2][1]) +
+                             verticesNDC[1][0] * (verticesNDC[2][1] - verticesNDC[0][1]) +
+                             verticesNDC[2][0] * (verticesNDC[0][1] - verticesNDC[1][1])));
+
+   let areaA = Math.abs((x * (verticesNDC[1][1] - verticesNDC[2][1]) +
+                             verticesNDC[1][0] * (verticesNDC[2][1] - y) +
+                             verticesNDC[2][0] * (y - verticesNDC[1][1])));
+
+   let areaB = Math.abs((verticesNDC[0][0] * (y - verticesNDC[2][1]) +
+                             x * (verticesNDC[2][1] - verticesNDC[0][1]) +
+                             verticesNDC[2][0] * (verticesNDC[0][1] - y)));
+
+   let areaC = Math.abs((verticesNDC[0][0] * (verticesNDC[1][1] - y) +
+                             verticesNDC[1][0] * (y - verticesNDC[0][1]) +
+                             x * (verticesNDC[0][1] - verticesNDC[1][1])));
+
+   return areaA + areaB + areaC <= areaOrig; // Check if point is inside triangle
+}
+
 function rotateZ() {
     // Clear previous event listeners to avoid multiple bindings
     window.removeEventListener("keydown", handleRotation);
@@ -129,32 +218,4 @@ function handleScaling(event) {
     }
     console.log(`xScale: ${xScale}, yScale: ${yScale}`);
 }
-function getValuesTranslation() {
-    const canvas = document.getElementById("gl-canvas");
-
-    // Add event listener for mouse clicks
-    canvas.addEventListener("mousedown", function (event) {
-        // Get mouse position relative to the canvas
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left; // Mouse X within canvas
-        const mouseY = event.clientY - rect.top;  // Mouse Y within canvas
-
-        // Convert mouse position to normalized device coordinates (NDC)
-        const ndcX = (2 * mouseX) / canvas.width - 1; // Normalize to [-1, 1]
-        const ndcY = 1 - (2 * mouseY) / canvas.height; // Normalize to [-1, 1]
-
-        // Update translation values
-        xtranslation = ndcX;
-        ytranslation = ndcY;
-
-        // Pass updated translation to shaders
-        gl.uniform1f(xTranslateLoc, xtranslation);
-        gl.uniform1f(yTranslateLoc, ytranslation);
-
-        // Render the scene with the new translation
-        render();
-    });
-}
-
-
 
