@@ -77,7 +77,7 @@ window.onload = function init() {
             getValuesScale();
         }
     });
-        
+    
     render();
 };
 
@@ -86,7 +86,7 @@ function render() {
     // Set color for the triangle that will be Red if selected, green if not
     const triangleColor = selectedTriangle ? [1.0, 0.0, 0.0] : [0.0, 1.0, 0.0]; 
     gl.uniform4f(fcolor, ...triangleColor, 1.0); 
-
+    
     // Set transformation uniforms
     gl.uniform1f(thetaLoc, theta); 
     gl.uniform1f(xTranslateLoc, xtranslation); 
@@ -101,13 +101,15 @@ function render() {
 }
 
 function handleMouseDown(event) {
+    window.removeEventListener("keydown", handleScaling);
+    window.removeEventListener("keydown", handleRotation);
     const canvas = document.getElementById("gl-canvas");
     
     // Get mouse coordinates relative to canvas
     const rect = canvas.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / canvas.width) * 2 - 1; // Convert to NDC
     const y = -((event.clientY - rect.top) / canvas.height) * 2 + 1; // Convert to NDC
-
+    
     // Check if click is within triangle bounds using color picking technique
     if (isPointInTriangle(x, y)) {
         selectedTriangle = !selectedTriangle; // Toggle selection state
@@ -126,15 +128,15 @@ function handleMouseDown(event) {
 }
 
 function handleMouseMove(event) {
-   if (!selectedTriangle) return; // Only move if the triangle is selected
+    if (!selectedTriangle) return; // Only move if the triangle is selected
    
-   const canvas = document.getElementById("gl-canvas");
-   const rect = canvas.getBoundingClientRect();
-
+    const canvas = document.getElementById("gl-canvas");
+    const rect = canvas.getBoundingClientRect();
+    
    // Calculate translation based on mouse movement
    const deltaX = ((event.clientX - rect.left) / canvas.width) * 2 - 1 - ((lastMouseX - rect.left) / canvas.width) * 2 + 1; 
    const deltaY = -((event.clientY - rect.top) / canvas.height) * 2 + 1 - (-((lastMouseY - rect.top) / canvas.height) * 2 + 1); 
-
+   
    xtranslation += deltaX; 
    ytranslation += deltaY;
 
@@ -144,39 +146,40 @@ function handleMouseMove(event) {
 }
 
 function handleMouseUp(event) {
-   selectedTriangle = false; // Deselect when mouse is released
-   document.removeEventListener('mouseup', handleMouseUp);
+    selectedTriangle = false; // Deselect when mouse is released
+    document.removeEventListener('mouseup', handleMouseUp);
 }
 
 function isPointInTriangle(x, y) {
-   const verticesNDC = [
-       vec3(-1,-1), 
-       vec3(0,1), 
-       vec3(1,-1)
-   ];
+    const verticesNDC = [
+        vec3(-1,-1), 
+        vec3(0,1), 
+        vec3(1,-1)
+    ];
 
-   let areaOrig = Math.abs((verticesNDC[0][0] * (verticesNDC[1][1] - verticesNDC[2][1]) +
-                             verticesNDC[1][0] * (verticesNDC[2][1] - verticesNDC[0][1]) +
+    let areaOrig = Math.abs((verticesNDC[0][0] * (verticesNDC[1][1] - verticesNDC[2][1]) +
+    verticesNDC[1][0] * (verticesNDC[2][1] - verticesNDC[0][1]) +
                              verticesNDC[2][0] * (verticesNDC[0][1] - verticesNDC[1][1])));
 
    let areaA = Math.abs((x * (verticesNDC[1][1] - verticesNDC[2][1]) +
                              verticesNDC[1][0] * (verticesNDC[2][1] - y) +
                              verticesNDC[2][0] * (y - verticesNDC[1][1])));
 
-   let areaB = Math.abs((verticesNDC[0][0] * (y - verticesNDC[2][1]) +
+                             let areaB = Math.abs((verticesNDC[0][0] * (y - verticesNDC[2][1]) +
                              x * (verticesNDC[2][1] - verticesNDC[0][1]) +
                              verticesNDC[2][0] * (verticesNDC[0][1] - y)));
-
-   let areaC = Math.abs((verticesNDC[0][0] * (verticesNDC[1][1] - y) +
+                             
+                             let areaC = Math.abs((verticesNDC[0][0] * (verticesNDC[1][1] - y) +
                              verticesNDC[1][0] * (y - verticesNDC[0][1]) +
                              x * (verticesNDC[0][1] - verticesNDC[1][1])));
-
-   return areaA + areaB + areaC <= areaOrig; // Check if point is inside triangle
-}
-
+                             
+                             return areaA + areaB + areaC <= areaOrig; // Check if point is inside triangle
+                            }
+                            
 function rotateZ() {
     // Clear previous event listeners to avoid multiple bindings
-    window.removeEventListener("keydown", handleRotation);
+    window.removeEventListener("keydown", handleMouseDown);
+    window.removeEventListener("keydown", handleMouseMove);
     window.removeEventListener("keydown", handleScaling);
     window.addEventListener("keydown", handleRotation);
     
@@ -195,8 +198,9 @@ function handleRotation(event) {
 }
 function getValuesScale() {
     // Clear previous event listeners to avoid multiple bindings
+    window.removeEventListener("keydown", handleMouseDown);
+    window.removeEventListener("keydown", handleMouseMove);
     window.removeEventListener("keydown", handleRotation);
-    window.removeEventListener("keydown", handleScaling);
     window.addEventListener("keydown", handleScaling);
     
     window.addEventListener("keyup", () => {
